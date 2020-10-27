@@ -24,7 +24,9 @@
     "deploy": "gh-pages -d example/build"
   },
   "peerDependencies": {
-    "react": "^17.0.0"
+    "react": "^17.0.0",
+    "realm": "^10.0.1",
+    "realm-web": "1.0.0"
   },
   "devDependencies": {
     "@testing-library/user-event": "^7.2.1",
