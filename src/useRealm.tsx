@@ -1,72 +1,109 @@
-import * as React from "react";
-import * as Realm from "realm";
+import * as React from "react"
+import Realm from "realm"
+import { ObjectId } from "bson"
+import useCurrentUser from "./useCurrentUser"
+import { useDeepCompareMemo } from "use-deep-compare"
 
-// useSyncedRealm({
-//   partitionValue: `user=${"abc209fd8sf"}`,
-//   initializer: (realm: Realm): void => {
-//     realm.create("CalendarEvent", { id: "foo", date: new Date("January 1, 2021 10:05:12.345Z") })
-//   },
-//   onConnectionChange: (newState: ConnectionState, oldState: ConnectionState) => {
-//     console.log(newState, oldState)
-//   },
-//   onSyncProgress: (direction: Realm.ProgressDirection, transferred: number, transferable: number) => {
-//     console.log(direction, transferred, transferable)
-//   },
-// })
-
-export default function useRealm(config?: Realm.Configuration): Realm {
-  if(!config) throw new Error("");
-  const [realm, setRealm] = React.useState<Realm | null>();
-  React.useEffect(() => {
-    const openRealm = Realm.open(config);
-    openRealm.then(setRealm);
-    return () => openRealm.then((r: Realm) => r.close())
-  }, [config.path])
-  return realm
+// Same as Realm.Configuration but with { sync: Partial<Realm.SyncConfiguration> }
+interface UseRealmBaseConfig {
+  encryptionKey?: ArrayBuffer | ArrayBufferView | Int8Array
+  migration?: Realm.MigrationCallback
+  shouldCompactOnLaunch?: (totalBytes: number, usedBytes: number) => boolean
+  path?: string
+  fifoFilesFallbackPath?: string
+  readOnly?: boolean
+  inMemory?: boolean
+  schema?: (Realm.ObjectClass | Realm.ObjectSchema)[]
+  schemaVersion?: number
+  sync?: Partial<Realm.SyncConfiguration>
+  deleteRealmIfMigrationNeeded?: boolean
+  disableFormatUpgrade?: boolean
 }
 
-interface SyncedRealmConfig {
-  partitionValue: string;
-  schema: (Realm.ObjectClass | Realm.ObjectSchema)[];
+interface UseSyncedRealmConfig extends UseRealmBaseConfig {
+  // Mark specific fields as required
+  sync: {
+    partitionValue: string | number | ObjectId | null
+    user?: Realm.User
+  }
+  // Omit fields that only apply to non-sync realms
+  schemaVersion: never
+  migration: never
+  deleteRealmIfMigrationNeeded: never
 }
 
-export const useSyncedRealm = (config: SyncedRealmConfig): Realm => {
-  const { currentUser } = useRealmApp();
-  const { partitionValue, schema } = config;
-  const [realm, setRealm] = React.useState<Realm | null>();
-  React.useEffect(() => {
-    if (currentUser) {
-      Realm.open({
-        path: partitionValue,
-        schema: schema,
-        sync: {
-          user: currentUser,
-          partitionValue: partitionValue,
-        },
-      }).then(setRealm);
+interface UseLocalRealmConfig extends UseRealmBaseConfig {
+  // Mark specific fields as required
+  path: string
+  // Omit fields that only apply to synced realms
+  sync: never
+}
+
+type UseRealmConfig = UseSyncedRealmConfig | UseLocalRealmConfig
+
+const isSyncedRealmConfig = (config: UseRealmConfig): config is UseSyncedRealmConfig => {
+  return Boolean(config.sync)
+}
+
+const isLocalRealmConfig = (config: UseRealmConfig): config is UseLocalRealmConfig => {
+  return !isSyncedRealmConfig(config)
+}
+
+const useRealmConfiguration = (hookConfig: UseRealmConfig): Realm.Configuration => {
+  const currentUser = useCurrentUser()
+  const realmConfig: Realm.Configuration = useDeepCompareMemo(() => {
+    if (isSyncedRealmConfig(hookConfig)) {
+      if (!currentUser) {
+        throw new Error("Must be logged in to call useRealm()")
+      }
+      return {
+        ...hookConfig,
+        sync: { ...hookConfig.sync, user: currentUser }
+      }
+    } else {
+      return hookConfig
     }
-  }, [currentUser, partitionValue]);
-  return realm;
-};
-
-type MigrationCallback = (oldRealm: Realm, newRealm: Realm) => void;
-interface LocalRealmConfig {
-  path: string;
-  schema: (Realm.ObjectClass | Realm.ObjectSchema)[];
-  schemaVersion?: number;
-  migration?: MigrationCallback;
+  }, [hookConfig, currentUser])
+  return realmConfig
 }
 
-export const useLocalRealm = (config: LocalRealmConfig): Realm => {
-  const { path, schema, schemaVersion, migration } = config;
-  const [realm, setRealm] = React.useState<Realm | null>();
+interface UseRealmResult {
+  realm: Realm | null
+  loading: boolean
+  error: Error | null
+}
+
+export default function useRealm(config: UseRealmConfig): UseRealmResult {
+  const [realm, setRealm] = React.useState<Realm | null>(null)
+  const [loading, setLoading] = React.useState<boolean>(false)
+  const [error, setError] = React.useState<Error | null>(null)
+
+  const realmConfig: Realm.Configuration = useRealmConfiguration(config)
+
   React.useEffect(() => {
-    Realm.open({
-      path: path,
-      schema: schema,
-      schemaVersion: schemaVersion,
-      migration: migration,
-    }).then(setRealm);
-  }, [path, schema, schemaVersion, migration]);
-  return realm;
-};
+    let cleanup: (() => void) | undefined
+    const open = async () => {
+      setLoading(true)
+      const r: Realm = await Realm.open(realmConfig)
+      setLoading(false)
+      setRealm(r)
+      return () => r.close()
+    }
+    open()
+      .then((closeRealm) => (cleanup = closeRealm))
+      .catch((err) => setError(err))
+    return () => {
+      cleanup && cleanup()
+    }
+  }, [realmConfig])
+
+  return { realm, loading, error }
+}
+
+export const useSyncedRealm = (config: UseSyncedRealmConfig): UseRealmResult => {
+  return useRealm(config);
+}
+
+export const useLocalRealm = (config: UseLocalRealmConfig): UseRealmResult => {
+  return useRealm(config);
+}
