@@ -1,10 +1,11 @@
 import React from 'react'
 
-import { ExampleComponent } from 'realm-hooks'
-import 'realm-hooks/dist/index.css'
+import { useRealmApp } from 'realm-hooks'
 
 const App = () => {
-  return <ExampleComponent text="Create React Library Example 😄" />
+  const app = useRealmApp("myapp-abcde")
+  console.log("app", app)
+  return <div>app id: {app.id}</div>
 }
 
 export default App
