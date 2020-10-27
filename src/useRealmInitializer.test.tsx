@@ -1,7 +1,7 @@
-import useRealmInitializer from "./useRealmInitializer";
+import useRealmInitializer from "./useRealmInitializer"
 
 describe("useRealmInitializer", () => {
   test("it works", () => {
-    expect(true).toBe(false);
+    expect(true).toBe(false)
   })
 })

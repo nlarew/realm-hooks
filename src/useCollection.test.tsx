@@ -1,7 +1,7 @@
-import useCollection from "./useCollection";
+import useCollection from "./useCollection"
 
 describe("useCollection", () => {
   test("it returns a collection", () => {
-    expect(true).toBe(false);
+    expect(true).toBe(false)
   })
 })

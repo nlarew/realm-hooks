@@ -104,9 +104,9 @@ export default function useRealm(config: UseRealmConfig): UseRealmResult {
 }
 
 export const useSyncedRealm = (config: UseSyncedRealmConfig): UseRealmResult => {
-  return useRealm(config);
+  return useRealm(config)
 }
 
 export const useLocalRealm = (config: UseLocalRealmConfig): UseRealmResult => {
-  return useRealm(config);
+  return useRealm(config)
 }

@@ -1,7 +1,7 @@
-import useProgress from "./useProgress";
+import useProgress from "./useProgress"
 
 describe("useProgress", () => {
   test("it works", () => {
-    expect(true).toBe(false);
+    expect(true).toBe(false)
   })
 })

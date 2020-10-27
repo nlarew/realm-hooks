@@ -1,12 +1,12 @@
-import * as React from "react";
-import * as Realm from "realm";
+import * as React from "react"
+import * as Realm from "realm"
 
-export type RealmInitializer = (realm: Realm) => void;
+export type RealmInitializer = (realm: Realm) => void
 
 export default function useRealmInitializer(realm: Realm, initializer: RealmInitializer): void {
-  if(realm.empty) {
+  if (realm.empty) {
     realm.write(() => {
-      initializer(realm);
+      initializer(realm)
     })
   }
-};
+}

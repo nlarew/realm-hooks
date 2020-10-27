@@ -3,53 +3,59 @@
 // - useUploadProgress(onUpload)
 // - useDownloadProgress(onDownload)
 
-import * as React from 'react'
-import * as Realm from 'realm'
-import useRealm from './useRealm';
+import * as React from "react"
+import * as Realm from "realm"
+import useRealm from "./useRealm"
 
-
-
-type ProgressNotificationCallback = (transferred: number, transferable: number) => void;
-type ProgressDirection = 'download' | 'upload';
-type ProgressMode = 'reportIndefinitely' | 'forCurrentlyOutstandingWork';
+type ProgressNotificationCallback = (transferred: number, transferable: number) => void
+type ProgressDirection = "download" | "upload"
+type ProgressMode = "reportIndefinitely" | "forCurrentlyOutstandingWork"
 
 type Progress = {
-  direction: ProgressDirection;
-  transferred: number;
-  transferable: number;
+  direction: ProgressDirection
+  transferred: number
+  transferable: number
 }
 
 interface UseProgress {
-  realm?: Realm,
-  direction: ProgressDirection,
-  onProgress?: ProgressNotificationCallback,
+  realm?: Realm
+  direction: ProgressDirection
+  onProgress?: ProgressNotificationCallback
   mode?: ProgressMode
 }
 function useRealmWithContextFallback(r: Realm | undefined): Realm {
-  const contextRealm = useRealm();
-  return r ?? contextRealm;
+  const contextRealm = useRealm()
+  return r ?? contextRealm
 }
 
-export default function useProgress({ realm, direction, onProgress, mode="reportIndefinitely" }: UseProgress): Progress {
-  const progressRealm = useRealmWithContextFallback(realm);
-  const [progress, setProgress] = React.useState<Progress>({ direction, transferred: 0, transferable: 0 });
+export default function useProgress({
+  realm,
+  direction,
+  onProgress,
+  mode = "reportIndefinitely"
+}: UseProgress): Progress {
+  const progressRealm = useRealmWithContextFallback(realm)
+  const [progress, setProgress] = React.useState<Progress>({
+    direction,
+    transferred: 0,
+    transferable: 0
+  })
   React.useEffect(() => {
-    if(progressRealm.syncSession) {
+    if (progressRealm.syncSession) {
       const handleNotification: ProgressNotificationCallback = (transferred, transferable) => {
-        setProgress({ ...progress, transferred, transferable });
-        if(onProgress) {
-          onProgress(transferred, transferable);
+        setProgress({ ...progress, transferred, transferable })
+        if (onProgress) {
+          onProgress(transferred, transferable)
         }
       }
-      progressRealm.syncSession.addProgressNotification(direction, mode, handleNotification);
-      return () => progressRealm.syncSession?.removeProgressNotification(handleNotification);
+      progressRealm.syncSession.addProgressNotification(direction, mode, handleNotification)
+      return () => progressRealm.syncSession?.removeProgressNotification(handleNotification)
     }
     return
   }, [progressRealm, progressRealm.syncSession, direction])
-  
-  return progress;
-}
 
+  return progress
+}
 
 // const projectRealm = {} as Realm
 // // Simple return object that represents current progress as state
@@ -72,8 +78,6 @@ export default function useProgress({ realm, direction, onProgress, mode="report
 //     console.log(`Download is ${completionPercentage}% complete.`)
 //   }
 // })
-
-
 
 // interface UseProgressConfig {
 //   direction: ProgressDirection,

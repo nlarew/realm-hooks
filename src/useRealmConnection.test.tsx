@@ -1,4 +1,4 @@
-import useConnection from "./useRealmConnection";
+import useConnection from "./useRealmConnection"
 
 const projectRealm = {} as Realm
 const explicit = useConnection({
@@ -15,6 +15,6 @@ const explicit = useConnection({
 
 describe("useRealmConnection", () => {
   test("it works", () => {
-    expect(true).toBe(false);
+    expect(true).toBe(false)
   })
 })
