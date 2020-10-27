@@ -20,6 +20,7 @@
     "test:lint": "eslint .",
     "test:unit": "cross-env CI=1 react-scripts test --env=jest-environment-jsdom-sixteen --colors",
     "test:watch": "react-scripts test --env=jsdom",
+    "prettier": "prettier --write \"./src/**/*.tsx\"",
     "predeploy": "cd example && npm install && npm run build",
     "deploy": "gh-pages -d example/build"
   },
