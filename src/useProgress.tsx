@@ -7,6 +7,8 @@ import * as React from 'react'
 import * as Realm from 'realm'
 import useRealm from './useRealm';
 
+
+
 type ProgressNotificationCallback = (transferred: number, transferable: number) => void;
 type ProgressDirection = 'download' | 'upload';
 type ProgressMode = 'reportIndefinitely' | 'forCurrentlyOutstandingWork';

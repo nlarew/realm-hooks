@@ -58,7 +58,10 @@ const useRealmConfiguration = (hookConfig: UseRealmConfig): Realm.Configuration 
       }
       return {
         ...hookConfig,
-        sync: { ...hookConfig.sync, user: currentUser }
+        sync: {
+          ...hookConfig.sync,
+          user: hookConfig.sync.user ?? currentUser
+        }
       }
     } else {
       return hookConfig
