@@ -1,63 +1,50 @@
-// Should we split into multiple hooks?
-// - useProgress({ onDownload, onUpload })
-// - useUploadProgress(onUpload)
-// - useDownloadProgress(onDownload)
-
 import * as React from "react"
 import * as Realm from "realm"
 import type { ProgressNotificationCallback, ProgressDirection, ProgressMode } from "realm"
-import useRealm, { useRealmWithContextFallback } from "./useRealm"
-
-interface UseProgressConfig {
-  realm?: Realm;
-  onProgress?: ProgressNotificationCallback;
-  onUpload?: ProgressNotificationCallback;
-  onDownload?: ProgressNotificationCallback;
-  mode?: ProgressMode
-}
-
-function useDownloadProgress({ realm, onDownload }: UseProgressConfig): DownloadProgress {
-  const { download } = useProgress({ realm, direction: "download", mode: "reportIndefinitely", onDownload })
-  return {
-    direction: "download",
-
-  }
-}
-
-function useUploadProgress({ realm, onUpload }: UseProgressConfig): UploadProgress {
-
-}
+import { useRealmWithContextFallback } from "./useRealm"
 
 type Progress = {
-  direction: ProgressDirection
   transferred: number
   transferable: number
 }
-type DownloadProgress = Progress & { direction: "download" }
-type UploadProgress = Progress & { direction: "upload" }
 
-interface UseProgress extends UseProgressConfig {
+type UseUploadProgressResult = {
+  isUploading: boolean
+  uploadProgress: Progress
+}
+type UseDownloadProgressResult = {
+  isDownloading: boolean
+  downloadProgress: Progress
+}
+interface UseProgressResult {
+  loading: boolean
+  progress: Progress
+}
+
+interface UseProgressConfig {
+  realm?: Realm
+  mode?: ProgressMode
   direction: ProgressDirection
+  onProgress?: ProgressNotificationCallback
 }
 
 export default function useProgress({
   realm,
   direction,
   onProgress,
-  onUpload,
-  onDownload,
   mode = "reportIndefinitely"
-}: UseProgress): Progress {
+}: UseProgressConfig): UseProgressResult {
   const progressRealm = useRealmWithContextFallback(realm)
+  const [loading, setLoading] = React.useState<boolean>(false)
   const [progress, setProgress] = React.useState<Progress>({
-    direction,
     transferred: 0,
     transferable: 0
   })
   React.useEffect(() => {
     if (progressRealm.syncSession) {
       const handleNotification: ProgressNotificationCallback = (transferred, transferable) => {
-        setProgress({ ...progress, transferred, transferable })
+        setLoading(transferred < transferable)
+        setProgress({ transferred, transferable })
         if (onProgress) {
           onProgress(transferred, transferable)
         }
@@ -68,58 +55,43 @@ export default function useProgress({
     return
   }, [progressRealm, progressRealm.syncSession, direction])
 
-  return progress
+  return { progress, loading }
 }
 
-// const projectRealm = {} as Realm
-// // Simple return object that represents current progress as state
-// const progress: Progress = useProgress({ direction: "download" });
-// // Fully reactive call that showcases maximum option specificity
-// useProgress({
-//   realm: projectRealm,
-//   direction: "download",
-//   mode: "forCurrentlyOutstandingWork",
-//   onProgress: (transferred, transferable) => {
-//     const completionPercentage = (transferred / transferable) * 100
-//     console.log(`Download is ${completionPercentage}% complete.`)
-//   }
-// })
-// // Fully reactive call with minimal option specificity
-// useProgress({
-//   direction: "download",
-//   onProgress: (transferred, transferable) => {
-//     const completionPercentage = (transferred / transferable) * 100
-//     console.log(`Download is ${completionPercentage}% complete.`)
-//   }
-// })
+interface UseUploadProgressConfig {
+  realm?: Realm
+  mode?: ProgressMode
+  onUpload?: ProgressNotificationCallback
+}
+export function useUploadProgress({
+  realm,
+  mode = "reportIndefinitely",
+  onUpload
+}: UseUploadProgressConfig = {}): UseUploadProgressResult {
+  const { progress: uploadProgress, loading: isUploading } = useProgress({
+    realm,
+    mode,
+    direction: "download",
+    onProgress: onUpload
+  })
+  return { uploadProgress, isUploading }
+}
 
-// interface UseProgressConfig {
-//   direction: ProgressDirection,
-//   onProgress?: ProgressNotificationCallback,
-//   mode?: ProgressMode
-// }
-// interface UseProgressNext {
-//   (realm: Realm, config: UseProgressConfig): Progress;
-//   (config: UseProgressConfig): Progress;
-// }
-// interface UseProgressNextCombined {
-//   (realmOrConfig: Realm | UseProgressConfig, config?: UseProgressConfig): Progress;
-// }
-// const explicit: UseProgressNext = (realm: Realm, { direction, onProgress, mode="reportIndefinitely" }: UseProgressConfig) => {
-//   console.log(realm, direction, onProgress, mode)
-//   return { direction, transferred: 0, transferable: 0 }
-// }
-// const implicit: UseProgressNext = ({ direction, onProgress, mode="reportIndefinitely" }: UseProgressConfig) => {
-//   const realm = useRealm();
-//   console.log(realm, direction, onProgress, mode)
-//   return { direction, transferred: 0, transferable: 0 }
-// }
-
-// explicit(projectRealm, {
-//   direction: "upload",
-//   onProgress: (transferred, transferable) => {}
-// })
-// implicit({
-//   direction: "upload",
-//   onProgress: (transferred, transferable) => {}
-// })
+interface UseDownloadProgressConfig {
+  realm?: Realm
+  mode?: ProgressMode
+  onDownload?: ProgressNotificationCallback
+}
+export function useDownloadProgress({
+  realm,
+  mode = "reportIndefinitely",
+  onDownload
+}: UseDownloadProgressConfig = {}): UseDownloadProgressResult {
+  const { progress: downloadProgress, loading: isDownloading } = useProgress({
+    realm,
+    mode,
+    direction: "download",
+    onProgress: onDownload
+  })
+  return { downloadProgress, isDownloading }
+}

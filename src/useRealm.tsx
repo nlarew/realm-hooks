@@ -25,7 +25,7 @@ export function useRealmWithContextFallback(hookRealm: Realm | undefined): Realm
   return realm
 }
 
-// Same as Realm.Configuration but with { sync: Partial<Realm.SyncConfiguration> }
+// Same as Realm.Configuration but without sync
 interface UseRealmBaseConfig {
   encryptionKey?: ArrayBuffer | ArrayBufferView | Int8Array
   migration?: Realm.MigrationCallback
@@ -36,26 +36,20 @@ interface UseRealmBaseConfig {
   inMemory?: boolean
   schema?: (Realm.ObjectClass | Realm.ObjectSchema)[]
   schemaVersion?: number
-  sync?: Partial<Realm.SyncConfiguration>
   deleteRealmIfMigrationNeeded?: boolean
   disableFormatUpgrade?: boolean
 }
 
 interface UseSyncedRealmConfig extends UseRealmBaseConfig {
-  // Mark specific fields as required
   sync: {
     partitionValue: string | number | ObjectId | null
     user?: Realm.User
   }
-  // Omit fields that only apply to non-sync realms
-  // schemaVersion: never
-  // migration: never
-  // deleteRealmIfMigrationNeeded: never
 }
 
 interface UseLocalRealmConfig extends UseRealmBaseConfig {
   // Mark specific fields as required
-  path: string
+  // path: string
   // Omit fields that only apply to synced realms
   // sync: never
 }
@@ -63,7 +57,7 @@ interface UseLocalRealmConfig extends UseRealmBaseConfig {
 type UseRealmConfig = UseSyncedRealmConfig | UseLocalRealmConfig
 
 const isSyncedRealmConfig = (config: UseRealmConfig): config is UseSyncedRealmConfig => {
-  return Boolean(config.sync)
+  return Boolean("sync" in config)
 }
 
 const isLocalRealmConfig = (config: UseRealmConfig): config is UseLocalRealmConfig => {
@@ -102,11 +96,11 @@ export default function useRealm(config?: UseRealmConfig): UseRealmResult {
   if(!config && !realmContext) {
     throw new Error("You must either pass a realm directly or provide one from a <RealmProvider />")
   }
-  const [realm, setRealm] = React.useState<Realm | null>(config ? null : realmContext?.realm ?? null)
-  const [loading, setLoading] = React.useState<boolean>(config ? false : realmContext?.loading ?? false)
-  const [error, setError] = React.useState<Error | null>(config ? null : realmContext?.error ?? null)
+  const [realm, setRealm] = React.useState<Realm | null>(config ? null : realmContext!.realm)
+  const [loading, setLoading] = React.useState<boolean>(config ? false : realmContext!.loading)
+  const [error, setError] = React.useState<Error | null>(config ? null : realmContext!.error)
 
-  const realmConfig: Realm.Configuration = useRealmConfiguration(config ?? { path: "" })
+  const realmConfig: Realm.Configuration = useRealmConfiguration(config ?? {})
 
   React.useEffect(() => {
     let cleanup: (() => void) | undefined
@@ -142,30 +136,3 @@ export const useSyncedRealm = (config: UseSyncedRealmConfig): UseRealmResult => 
 export const useLocalRealm = (config: UseLocalRealmConfig): UseRealmResult => {
   return useRealm(config)
 }
-
-// export default function useRealm(config?: UseRealmConfig): UseRealmResult {
-//   const [realm, setRealm] = React.useState<Realm | null>(null)
-//   const [loading, setLoading] = React.useState<boolean>(false)
-//   const [error, setError] = React.useState<Error | null>(null)
-
-//   const realmConfig: Realm.Configuration = useRealmConfiguration(config)
-
-//   React.useEffect(() => {
-//     let cleanup: (() => void) | undefined
-//     const open = async () => {
-//       setLoading(true)
-//       const r: Realm = await Realm.open(realmConfig)
-//       setLoading(false)
-//       setRealm(r)
-//       return () => r.close()
-//     }
-//     open()
-//       .then((closeRealm) => (cleanup = closeRealm))
-//       .catch((err) => setError(err))
-//     return () => {
-//       cleanup && cleanup()
-//     }
-//   }, [realmConfig])
-
-//   return { realm, loading, error }
-// }

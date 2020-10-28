@@ -1,37 +1,21 @@
 import * as React from "react"
 import * as Realm from "realm"
-// import { ObjectId } from "bson"
+import { useRealmWithContextFallback } from "./useRealm"
 
-// const projectRealm = {} as Realm
-// useRealmInitializer(projectRealm, (realm) => {
-//   realm.create("Task", {
-//     _id: new ObjectId(),
-//     name: "Do the dishes",
-//     status: "Open",
-//   })
-//   realm.create("Task", {
-//     _id: new ObjectId(),
-//     name: "Stack paper to the ceiling",
-//     status: "InProgress",
-//   })
-//   realm.create("Task", {
-//     _id: new ObjectId(),
-//     name: "Ride on 24 inch chrome",
-//     status: "Closed",
-//   })
-//   realm.create("Task", {
-//     _id: new ObjectId(),
-//     name: "Buy a new TV",
-//     status: "Closed",
-//   })
-// })
+interface UseRealmInitializerConfig {
+  realm?: Realm;
+  initializer: (realm: Realm) => void
+}
 
-export type RealmInitializer = (realm: Realm) => void
-
-export default function useRealmInitializer(realm: Realm, initializer: RealmInitializer): void {
-  if (realm.empty) {
-    realm.write(() => {
-      initializer(realm)
-    })
-  }
+export default function useRealmInitializer({ realm, initializer }: UseRealmInitializerConfig): void {
+  const initializeRealm = useRealmWithContextFallback(realm)
+  const [isInitialized, setIsInitialized] = React.useState<boolean>(!initializeRealm.empty)
+  React.useEffect(() => {
+    if(!isInitialized) {
+      initializeRealm.write(() => {
+        initializer(initializeRealm)
+      })
+      setIsInitialized(true)
+    }
+  }, [isInitialized])
 }
