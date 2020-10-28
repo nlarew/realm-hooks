@@ -1,7 +1,7 @@
 import useProgress, { useUploadProgress, useDownloadProgress } from "./useProgress"
 
 const { uploadProgress, isUploading } = useUploadProgress({
-  onUpload: (transferred: number, transferable: number) => {
+  onUploadProgress: (transferred: number, transferable: number) => {
     console.log("transferred", transferred)
     console.log("transferable", transferable)
   }
@@ -10,7 +10,7 @@ console.log("uploadProgress", uploadProgress)
 console.log("isUploading", isUploading)
 
 const { downloadProgress, isDownloading } = useDownloadProgress({
-  onDownload: (transferred: number, transferable: number) => {
+  onDownloadProgress: (transferred: number, transferable: number) => {
     console.log("transferred", transferred)
     console.log("transferable", transferable)
   }
@@ -46,7 +46,7 @@ describe("useUploadProgress", () => {
     test("it returns upload progress", () => {
       expect(true)
     })
-    test("it calls the user-provided onUpload callback", () => {
+    test("it calls the user-provided onUploadProgress callback", () => {
       expect(true)
     })
   })
@@ -62,7 +62,7 @@ describe("useDownloadProgress", () => {
     test("it returns download progress", () => {
       expect(true)
     })
-    test("it calls the user-provided onDownload callback", () => {
+    test("it calls the user-provided onDownloadProgress callback", () => {
       expect(true)
     })
   })

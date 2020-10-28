@@ -61,18 +61,18 @@ export default function useProgress({
 interface UseUploadProgressConfig {
   realm?: Realm
   mode?: ProgressMode
-  onUpload?: ProgressNotificationCallback
+  onUploadProgress?: ProgressNotificationCallback
 }
 export function useUploadProgress({
   realm,
   mode = "reportIndefinitely",
-  onUpload
+  onUploadProgress
 }: UseUploadProgressConfig = {}): UseUploadProgressResult {
   const { progress: uploadProgress, loading: isUploading } = useProgress({
     realm,
     mode,
     direction: "download",
-    onProgress: onUpload
+    onProgress: onUploadProgress
   })
   return { uploadProgress, isUploading }
 }
@@ -80,18 +80,18 @@ export function useUploadProgress({
 interface UseDownloadProgressConfig {
   realm?: Realm
   mode?: ProgressMode
-  onDownload?: ProgressNotificationCallback
+  onDownloadProgress?: ProgressNotificationCallback
 }
 export function useDownloadProgress({
   realm,
   mode = "reportIndefinitely",
-  onDownload
+  onDownloadProgress
 }: UseDownloadProgressConfig = {}): UseDownloadProgressResult {
   const { progress: downloadProgress, loading: isDownloading } = useProgress({
     realm,
     mode,
     direction: "download",
-    onProgress: onDownload
+    onProgress: onDownloadProgress
   })
   return { downloadProgress, isDownloading }
 }
