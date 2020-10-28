@@ -5,33 +5,47 @@
 
 import * as React from "react"
 import * as Realm from "realm"
-import useRealm from "./useRealm"
+import type { ProgressNotificationCallback, ProgressDirection, ProgressMode } from "realm"
+import useRealm, { useRealmWithContextFallback } from "./useRealm"
 
-type ProgressNotificationCallback = (transferred: number, transferable: number) => void
-type ProgressDirection = "download" | "upload"
-type ProgressMode = "reportIndefinitely" | "forCurrentlyOutstandingWork"
+interface UseProgressConfig {
+  realm?: Realm;
+  onProgress?: ProgressNotificationCallback;
+  onUpload?: ProgressNotificationCallback;
+  onDownload?: ProgressNotificationCallback;
+  mode?: ProgressMode
+}
+
+function useDownloadProgress({ realm, onDownload }: UseProgressConfig): DownloadProgress {
+  const { download } = useProgress({ realm, direction: "download", mode: "reportIndefinitely", onDownload })
+  return {
+    direction: "download",
+
+  }
+}
+
+function useUploadProgress({ realm, onUpload }: UseProgressConfig): UploadProgress {
+
+}
 
 type Progress = {
   direction: ProgressDirection
   transferred: number
   transferable: number
 }
+type DownloadProgress = Progress & { direction: "download" }
+type UploadProgress = Progress & { direction: "upload" }
 
-interface UseProgress {
-  realm?: Realm
+interface UseProgress extends UseProgressConfig {
   direction: ProgressDirection
-  onProgress?: ProgressNotificationCallback
-  mode?: ProgressMode
-}
-function useRealmWithContextFallback(r: Realm | undefined): Realm {
-  const contextRealm = useRealm()
-  return r ?? contextRealm
 }
 
 export default function useProgress({
   realm,
   direction,
   onProgress,
+  onUpload,
+  onDownload,
   mode = "reportIndefinitely"
 }: UseProgress): Progress {
   const progressRealm = useRealmWithContextFallback(realm)
