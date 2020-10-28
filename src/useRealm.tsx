@@ -48,16 +48,16 @@ interface UseSyncedRealmConfig extends UseRealmBaseConfig {
     user?: Realm.User
   }
   // Omit fields that only apply to non-sync realms
-  schemaVersion: never
-  migration: never
-  deleteRealmIfMigrationNeeded: never
+  // schemaVersion: never
+  // migration: never
+  // deleteRealmIfMigrationNeeded: never
 }
 
 interface UseLocalRealmConfig extends UseRealmBaseConfig {
   // Mark specific fields as required
   path: string
   // Omit fields that only apply to synced realms
-  sync: never
+  // sync: never
 }
 
 type UseRealmConfig = UseSyncedRealmConfig | UseLocalRealmConfig
@@ -106,16 +106,23 @@ export default function useRealm(config?: UseRealmConfig): UseRealmResult {
   const [loading, setLoading] = React.useState<boolean>(config ? false : realmContext?.loading ?? false)
   const [error, setError] = React.useState<Error | null>(config ? null : realmContext?.error ?? null)
 
-  const realmConfig: Realm.Configuration = useRealmConfiguration(config)
+  const realmConfig: Realm.Configuration = useRealmConfiguration(config ?? { path: "" })
 
   React.useEffect(() => {
     let cleanup: (() => void) | undefined
     const open = async () => {
-      setLoading(true)
-      const r: Realm = await Realm.open(realmConfig)
-      setLoading(false)
-      setRealm(r)
-      return () => r.close()
+      if(!config && realmContext) {
+        setRealm(realmContext.realm)
+        setLoading(realmContext.loading)
+        setError(realmContext.error)
+        return
+      } else {
+        setLoading(true)
+        const r: Realm = await Realm.open(realmConfig)
+        setLoading(false)
+        setRealm(r)
+        return () => r.close()
+      }
     }
     open()
       .then((closeRealm) => (cleanup = closeRealm))
@@ -123,7 +130,7 @@ export default function useRealm(config?: UseRealmConfig): UseRealmResult {
     return () => {
       cleanup && cleanup()
     }
-  }, [realmConfig])
+  }, [realmConfig, realmContext])
 
   return { realm, loading, error }
 }
