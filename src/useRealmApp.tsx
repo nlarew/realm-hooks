@@ -1,5 +1,5 @@
 import * as React from "react"
-import * as Realm from "realm-web"
+import * as Realm from "realm"
 
 type AppConfig = Realm.AppConfiguration
 

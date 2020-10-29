@@ -26,9 +26,13 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+import { useRealmApp } from 'realm-hooks'
+
 declare const global: {HermesInternal: null | {}};
 
 const App = () => {
+  const app = useRealmApp("realm-hooks-kaaxo")
+  console.log("app", app)
   return (
     <>
       <StatusBar barStyle="dark-content" />
