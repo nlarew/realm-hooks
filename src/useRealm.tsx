@@ -6,9 +6,26 @@ import { useDeepCompareMemo } from "use-deep-compare"
 
 const RealmContext = React.createContext<UseRealmResult | null>(null)
 
-const RealmProvider: React.FC<{ config: UseRealmConfig }> = ({ config, children }) => {
-  const { realm, error, loading } = useRealm(config)
-  return <RealmContext.Provider value={{ realm, error, loading }}>{children}</RealmContext.Provider>
+interface RealmProviderProps {
+  config: UseRealmConfig
+}
+
+const RealmProvider: React.FC<RealmProviderProps> = ({ config, children }) => {
+  const realmContext = useRealm(config);
+  return <RealmContext.Provider value={realmContext}>{children}</RealmContext.Provider>
+}
+
+interface RealmConsumerProps {
+  children: (realmContext: UseRealmResult) => React.ReactElement;
+  // updateOnChange?: boolean;
+}
+
+export const RealmConsumer: React.FC<RealmConsumerProps> = ({ children }) => {
+  const realmContext = useRealmContext()
+  if(!realmContext) {
+    throw new Error("A <RealmConsumer /> must have a context provided by a <RealmProvider />")
+  }
+  return children(realmContext);
 }
 
 const useRealmContext = () => {
