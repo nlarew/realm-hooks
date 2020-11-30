@@ -16,15 +16,15 @@ const explicit = useConnection({
 describe("useConnection", () => {
   describe("when used with a local realm", () => {
     test("it does nothing", () => {
-      expect(true)
+      expect(true).toBe(false)
     })
   })
   describe("when used with a synced realm", () => {
     test("it returns the current connection state", () => {
-      expect("disconnected").toEqual("disconnected")
+      expect(true).toBe(false)
     })
     test("it calls the user-provided onProgress callback", () => {
-      expect(true)
+      expect(true).toBe(false)
     })
   })
 })

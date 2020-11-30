@@ -23,15 +23,15 @@ console.log("isDownloading", isDownloading)
 describe("useProgress", () => {
   describe("when used with a local realm", () => {
     test("it does nothing", () => {
-      expect(true)
+      expect(true).toBe(false)
     })
   })
   describe("when used with a synced realm", () => {
     test("it returns upload and download progress", () => {
-      expect(true)
+      expect(true).toBe(false)
     })
     test("it calls the user-provided onProgress callback", () => {
-      expect(true)
+      expect(true).toBe(false)
     })
   })
 })
@@ -39,15 +39,15 @@ describe("useProgress", () => {
 describe("useUploadProgress", () => {
   describe("when used with a local realm", () => {
     test("it does nothing", () => {
-      expect(true)
+      expect(true).toBe(false)
     })
   })
   describe("when used with a synced realm", () => {
     test("it returns upload progress", () => {
-      expect(true)
+      expect(true).toBe(false)
     })
     test("it calls the user-provided onUploadProgress callback", () => {
-      expect(true)
+      expect(true).toBe(false)
     })
   })
 })
@@ -55,15 +55,15 @@ describe("useUploadProgress", () => {
 describe("useDownloadProgress", () => {
   describe("when used with a local realm", () => {
     test("it does nothing", () => {
-      expect(true)
+      expect(true).toBe(false)
     })
   })
   describe("when used with a synced realm", () => {
     test("it returns download progress", () => {
-      expect(true)
+      expect(true).toBe(false)
     })
     test("it calls the user-provided onDownloadProgress callback", () => {
-      expect(true)
+      expect(true).toBe(false)
     })
   })
 })
