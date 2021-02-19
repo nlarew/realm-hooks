@@ -1,4 +1,4 @@
-import useRealm from "./useRealm"
+import useRealm, { useSyncedRealm, useLocalRealm } from "./useRealm"
 
 describe("useSyncedRealm", () => {
   it("returns a synced realm when given a valid sync config", () => {
